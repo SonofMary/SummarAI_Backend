@@ -9,7 +9,7 @@ app.use(cors())
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads")
+        cb(null, "/tmp/")
     },
     filename: (req, file, cb) => {
         cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`)
