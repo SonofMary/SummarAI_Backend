@@ -170,6 +170,35 @@ const getAllUserSummaryDocuments = async (req, res) => {
   }
 
 }
+
+const getAUser = async (req, res) => {
+
+  const userId = req.params.userId
+  console.log("userID", userId)
+
+  try {
+      const userDetails = await userschema.findOne({_id: userId})
+
+  if(!userDetails) {
+    return res.status(400).json({
+      success: false,
+      message: "No User Found"
+    })
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: userDetails
+  })
+  } catch (error) {
+   return res.status(500).json({
+      success: false,
+      message: error.message
+    })
+    
+  }
+
+}
 const dashboard = async (req, res) => {
     return res.status(200).json({
         data: req.userData
@@ -527,4 +556,4 @@ async function generateQuiz(chunk) {
 
 
 
-module.exports = { uploadFile, dashboard, uploadFileAndExtract, uploadFileAndExtractAndSummarize, uploadFileAndExtractAndGenerateQuiz, register, login, chatAboutDoc, getAllUserQuizDetails, getAllUserSummaryDocuments, postQuizDetails};
+module.exports = { uploadFile, dashboard, uploadFileAndExtract, uploadFileAndExtractAndSummarize, uploadFileAndExtractAndGenerateQuiz, register, login, chatAboutDoc, getAllUserQuizDetails, getAllUserSummaryDocuments, postQuizDetails, getAUser};

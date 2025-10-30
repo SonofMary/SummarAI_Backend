@@ -1,6 +1,6 @@
 const express = require("express")
 const uploadOneFile = require("../../multer/multer")
-const { uploadFile, dashboard, uploadFileAndExtract, uploadFileAndExtractAndSummarize, test, uploadFileAndExtractAndGenerateQuiz, register, login, chatAboutDoc, getAllUserQuizDetails, getAllUserSummaryDocuments, postQuizDetails } = require("../controllers/controller")
+const { uploadFile, dashboard, uploadFileAndExtract, uploadFileAndExtractAndSummarize, test, uploadFileAndExtractAndGenerateQuiz, register, login, chatAboutDoc, getAllUserQuizDetails, getAllUserSummaryDocuments, postQuizDetails, getAUser } = require("../controllers/controller")
 const validateUser = require("../../middleware/validateUser")
 
 const router = express.Router()
@@ -16,5 +16,6 @@ router.route("/dashboard").get(validateUser, dashboard )
 router.route("/quiz/upload").post(validateUser, postQuizDetails)
 router.route("/quiz/:userId").get(validateUser, getAllUserQuizDetails )
 router.route("/summary/:userId").get(validateUser, getAllUserSummaryDocuments )
+router.route("/user/:userId").get(validateUser, getAUser )
 
 module.exports = router 
