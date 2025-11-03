@@ -73,7 +73,9 @@ try {
       message: "User does not exists",
     });
   }
-
+  if (user.isPremium === undefined) {
+    user.isPremium = false
+  }
   //Check Password
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
@@ -198,6 +200,27 @@ const getAUser = async (req, res) => {
     
   }
 
+}
+
+
+const verifyPaymentAndUpgrade = async (req, res) => {
+  const {email, reference} = req.body
+
+  //verify properly on paystack wit the refrence gotten from the frontend
+
+  try {
+    const verify = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, 
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_TEST_SECRET}`
+        }
+      }
+    )
+
+    console.log(verify.data)
+  } catch (error) {
+    
+  }
 }
 const dashboard = async (req, res) => {
     return res.status(200).json({
@@ -556,4 +579,4 @@ async function generateQuiz(chunk) {
 
 
 
-module.exports = { uploadFile, dashboard, uploadFileAndExtract, uploadFileAndExtractAndSummarize, uploadFileAndExtractAndGenerateQuiz, register, login, chatAboutDoc, getAllUserQuizDetails, getAllUserSummaryDocuments, postQuizDetails, getAUser};
+module.exports = { uploadFile, dashboard, uploadFileAndExtract, uploadFileAndExtractAndSummarize, uploadFileAndExtractAndGenerateQuiz, register, login, chatAboutDoc, getAllUserQuizDetails, getAllUserSummaryDocuments, postQuizDetails, getAUser, verifyPaymentAndUpgrade};
