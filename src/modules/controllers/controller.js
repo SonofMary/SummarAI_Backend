@@ -218,7 +218,44 @@ const verifyPaymentAndUpgrade = async (req, res) => {
     )
 
     console.log(verify.data)
+
+    const verification = verify.data
+
+    if(verification.status && verification.data.status === "success") {
+      let user = await userschema.findOne({email: email})
+
+      if(user) {
+        //update isPremium 
+        user.isPremium = true
+        await user.save()
+      } else {
+        //create a Premium account account
+        user = new userschema({
+          email: email,
+          isPremium: true
+        })
+
+        await user.save()
+      }
+
+      const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET_KEY, {expiresIn: "1d"});
+
+      return res.status(200).json({
+        success: true,
+        token,
+        user
+      })
+    }
+      return res.status(400).json({
+        message: "Payment Verifiaction Failed"
+      })
+
+
   } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    })
     
   }
 }
@@ -568,6 +605,96 @@ async function generateQuiz(chunk) {
 }
   
 
+//FREEMIUM
+
+// =============== FREE USER ROUTES =====================
+
+// Free summarize — doesn’t save to DB
+const uploadFileAndExtract_Free = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const filepath = req.file.path;
+    const extractedText = await extractTextPdfDocx(filepath);
+
+    const summarizedText = await summarizeChunk(extractedText);
+
+    return res.status(200).json({
+      message: "Free summarization successful",
+      file: req.file,
+      extractedText,
+      summarizedText,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Free quiz — doesn’t save to DB
+const uploadFileAndExtractAndGenerateQuiz_Free = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const filepath = req.file.path;
+    const extractedText = await extractTextPdfDocx(filepath);
+
+    const quiz = await generateQuiz(extractedText);
+
+    return res.status(200).json({
+      message: "Free quiz generation successful",
+      file: req.file,
+      extractedText,
+      quiz,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Free chat — doesn’t require login
+const chatAboutDoc_Free = async (req, res) => {
+  const { message, extractedText } = req.body;
+
+  if (!extractedText) {
+    return res.status(400).json({ message: "No document text provided." });
+  }
+
+  try {
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "z-ai/glm-4.5-air:free",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a helpful assistant that answers questions about a document concisely and accurately.",
+          },
+          {
+            role: "user",
+            content: `Document:\n${extractedText}\n\nQuestion: ${message}`,
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const aiReply = response.data?.choices?.[0]?.message?.content || "No reply.";
+
+    res.json({ reply: aiReply });
+  } catch (error) {
+    console.error("Free chat error:", error.message);
+    res.status(500).json({ error: "Failed to get AI response" });
+  }
+};
 
 
 
@@ -579,4 +706,6 @@ async function generateQuiz(chunk) {
 
 
 
-module.exports = { uploadFile, dashboard, uploadFileAndExtract, uploadFileAndExtractAndSummarize, uploadFileAndExtractAndGenerateQuiz, register, login, chatAboutDoc, getAllUserQuizDetails, getAllUserSummaryDocuments, postQuizDetails, getAUser, verifyPaymentAndUpgrade};
+module.exports = { uploadFile, dashboard, uploadFileAndExtract, uploadFileAndExtractAndSummarize, uploadFileAndExtractAndGenerateQuiz, register, login, chatAboutDoc, getAllUserQuizDetails, getAllUserSummaryDocuments, postQuizDetails, getAUser, verifyPaymentAndUpgrade, uploadFileAndExtract_Free,
+  uploadFileAndExtractAndGenerateQuiz_Free,
+  chatAboutDoc_Free};

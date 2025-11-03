@@ -1,6 +1,6 @@
 const express = require("express")
 const uploadOneFile = require("../../multer/multer")
-const { uploadFile, dashboard, uploadFileAndExtract, uploadFileAndExtractAndSummarize, test, uploadFileAndExtractAndGenerateQuiz, register, login, chatAboutDoc, getAllUserQuizDetails, getAllUserSummaryDocuments, postQuizDetails, getAUser, verifyPaymentAndUpgrade } = require("../controllers/controller")
+const { uploadFile, dashboard, uploadFileAndExtract, uploadFileAndExtractAndSummarize, test, uploadFileAndExtractAndGenerateQuiz, register, login, chatAboutDoc, getAllUserQuizDetails, getAllUserSummaryDocuments, postQuizDetails, getAUser, verifyPaymentAndUpgrade, uploadFileAndExtract_Free, uploadFileAndExtractAndGenerateQuiz_Free, chatAboutDoc_Free } = require("../controllers/controller")
 const validateUser = require("../../middleware/validateUser")
 
 const router = express.Router()
@@ -18,5 +18,13 @@ router.route("/quiz/:userId").get(validateUser, getAllUserQuizDetails )
 router.route("/summary/:userId").get(validateUser, getAllUserSummaryDocuments )
 router.route("/user/:userId").get(validateUser, getAUser ) //To get one user's details
 router.route("/register-paid").post(verifyPaymentAndUpgrade ) //To pay for premium
+
+
+// 🆓 Free user routes (No token, no save to DB)
+// Free routes — no login, no validation
+router.post("/free/upload-summarize", uploadOneFile, uploadFileAndExtract_Free);
+router.post("/free/upload-and-quiz", uploadOneFile, uploadFileAndExtractAndGenerateQuiz_Free);
+router.post("/free/chat", chatAboutDoc_Free);
+
 
 module.exports = router 
