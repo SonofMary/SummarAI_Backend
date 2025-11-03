@@ -13,9 +13,9 @@ router.route("/chat").post(chatAboutDoc)
 router.route("/upload-summarize").post( uploadOneFile, validateUser, uploadFileAndExtractAndSummarize)  
 router.route("/upload-and-quiz").post(uploadOneFile, uploadFileAndExtractAndGenerateQuiz)  
 router.route("/dashboard").get(validateUser, dashboard )
-router.route("/quiz/upload").post(validateUser, postQuizDetails)
+router.route("/quiz/upload").post(validateUser, postQuizDetails) //upload quiz details and score to backend
 router.route("/quiz/:userId").get(validateUser, getAllUserQuizDetails )
 router.route("/summary/:userId").get(validateUser, getAllUserSummaryDocuments )
-router.route("/user/:userId").get(validateUser, getAUser )
+router.route("/user/:userId").get(validateUser, getAUser ) //To get one user's details
 
 module.exports = router 
