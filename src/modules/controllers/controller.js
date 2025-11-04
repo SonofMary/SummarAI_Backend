@@ -59,7 +59,7 @@ const register = async (req, res) => {
 
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email } = req.body;
 
   //Check if user already exists
 
@@ -77,13 +77,15 @@ try {
     user.isPremium = false
   }
   //Check Password
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    return res.status(400).json({
-      message: "Invalid Password",
-    });
-  }
-  const jwtToken = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET_KEY, {expiresIn: "1d"});
+  // const isMatch = await bcrypt.compare(password, user.password);
+  // if (!isMatch) {
+  //   return res.status(400).json({
+  //     message: "Invalid Password",
+  //   });
+  // }
+
+  if(user.isPremium) {
+    const jwtToken = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET_KEY, {expiresIn: "1d"});
   console.log("jwtToken", jwtToken)
 
   return res.status(200).json({
@@ -92,6 +94,8 @@ try {
     user
   })
 
+  }
+  
     
 } catch (error) {
     return res.status(500).json({
