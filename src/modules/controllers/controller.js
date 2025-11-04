@@ -114,7 +114,7 @@ const postQuizDetails = async(req, res) => {
 
     return res.status(201).json({success: true, message: "User Score successfully saved", data: userQuizDetail})
   } catch (error) {
-    return res.staus(500).json({success: false, message: error.message})
+    return res.status(500).json({success: false, message: error.message})
   }
 }
 
@@ -572,29 +572,34 @@ async function generateQuiz(chunk) {
     headers: {
       "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
-    //   "HTTP-Referer": "https://yourdomain.com",
-    //   "X-Title": "PDF Summarizer"
     },
     body: JSON.stringify({
-       model: "z-ai/glm-4.5-air:free",
+      model: "z-ai/glm-4.5-air:free",
       messages: [
         {
           role: "system",
-          content:"You are a helpful assistant that creates educational quizzes."
+          content: `You are a quiz generator. Follow these strict rules:
+1. Create exactly 5 multiple-choice questions
+2. Each question must have 4 options labeled A, B, C, D
+3. Options must start with the letter followed by a period and space (e.g., "A. Paris")
+4. The answer field must contain the FULL correct option text (e.g., "A. Paris")
+5. Ensure answers are factually correct based on the text
+6. Return valid JSON array only, no additional text`
         },
         {
           role: "user",
-          content: `Create 5 multiple-choice quiz questions from this text. 
-          Format the output as valid JSON like this:
-          [
-            {
-              "question": "What is ...?",
-              "options": ["A", "B", "C", "D"],
-              "answer": "option"
-            }
-          ]
+          content: `Generate 5 quiz questions from this text. Return valid JSON array:
 
-          Text: ${chunk}`
+Text: ${chunk}
+
+Required JSON format:
+[
+  {
+    "question": "Question text here?",
+    "options": ["A. First option", "B. Second option", "C. Third option", "D. Fourth option"],
+    "answer": "A. First option"
+  }
+]`
         }
       ]
     })
