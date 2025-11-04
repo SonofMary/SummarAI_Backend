@@ -123,9 +123,9 @@ const postQuizDetails = async(req, res) => {
 }
 
 const getAllUserQuizDetails = async (req, res) => {
-
+    const userId = req.params.userId
   try {
-      const quizDetails = await QuizSchema.find(req.params.userId)
+      const quizDetails = await QuizSchema.find({owner: userId})
 
   if(!quizDetails) {
     return res.status(400).json({
