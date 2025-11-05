@@ -208,61 +208,81 @@ const getAUser = async (req, res) => {
 
 
 const verifyPaymentAndUpgrade = async (req, res) => {
-  const {email, reference} = req.body
-
-  //verify properly on paystack wit the refrence gotten from the frontend
+  const { email, reference } = req.body;
 
   try {
-    const verify = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, 
+    // Verify payment with Paystack
+    const verify = await axios.get(
+      `https://api.paystack.co/transaction/verify/${reference}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.PAYSTACK_TEST_SECRET}`
         }
       }
-    )
+    );
 
-    console.log(verify.data)
+    console.log("Paystack verification response:", verify.data);
 
-    const verification = verify.data
+    const verification = verify.data;
 
-    if(verification.status && verification.data.status === "success") {
-      let user = await userschema.findOne({email: email})
+    if (verification.status && verification.data.status === "success") {
+      let user = await userschema.findOne({ email: email });
 
-      if(user) {
-        //update isPremium 
-        user.isPremium = true
-        await user.save()
+      if (user) {
+        // Update existing user to premium
+        user.isPremium = true;
+        await user.save();
       } else {
-        //create a Premium account account
+        // Create new premium user
         user = new userschema({
           email: email,
-          isPremium: true
-        })
-
-        await user.save()
+          isPremium: true,
+          // fullName: "Premium User" // Add a default name
+        });
+        await user.save();
       }
 
-      const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET_KEY, {expiresIn: "1d"});
+      // Create JWT token
+      const token = jwt.sign(
+        { 
+          userId: user._id, 
+          email: user.email 
+        }, 
+        process.env.JWT_SECRET_KEY, 
+        { expiresIn: "1d" }
+      );
 
       return res.status(200).json({
         success: true,
         token,
         user
-      })
-    }
+      });
+    } else {
       return res.status(400).json({
-        message: "Payment Verifiaction Failed"
-      })
-
+        success: false,
+        message: "Payment verification failed"
+      });
+    }
 
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message
-    })
+    console.error("Payment verification error:", error);
     
+    // More specific error handling
+    if (error.response) {
+      // Paystack API error
+      return res.status(400).json({
+        success: false,
+        message: `Payment verification failed: ${error.response.data.message || 'Invalid reference'}`
+      });
+    } else {
+      // Server error
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error during payment verification"
+      });
+    }
   }
-}
+};
 const dashboard = async (req, res) => {
     return res.status(200).json({
         data: req.userData
